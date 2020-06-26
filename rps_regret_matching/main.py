@@ -5,7 +5,7 @@ class RPSTrainer:
     NUM_ACTIONS = 3
 
     def __init__(self, *, iterations, opponent_strategy):
-        self.__cumulative_regrets = [0] * RPSTrainer.NUM_ACTIONS
+        self.__cumulative_strategy = [[0, 0,0],[0,0,0]]
         self.__opponent_strategy = opponent_strategy
         self.__iterations = iterations
 
