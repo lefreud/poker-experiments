@@ -1,0 +1,1 @@
+The poker hand strength evaluator made in a [previous project](https://github.com/lefreud/project-euler-problems/tree/master/problems/54_poker_hands).
