@@ -1,27 +1,27 @@
-from poker.card import Card
+from poker.card import Card, SUITS
 from poker.hand_value import HandValue
 from poker.hand_type import HandType
+
+MAX_HAND_SIZE = 7
 
 
 class Hand:
     def __init__(self, hand):
-        self.sorted_cards = self.sort_hand(hand)
+        if isinstance(hand, str):
+            self.cards = [Card(card_string) for card_string in hand.split()]
+        else:
+            self.cards = hand
+        self.sorted_cards = Hand.sort_cards(self.cards)
+        self.sorted_ranks = [card.rank for card in self.sorted_cards]
+        self.sorted_suits = [card.suit for card in self.sorted_cards]
 
-    def sort_hand(self, hand):
-        cards = [Card(card_string) for card_string in hand.split()]
-        card_ranks = []
-        for card in cards:
-            card_ranks += [card.rank]
+    @staticmethod
+    def sort_cards(cards):
+        card_ranks = [card.rank for card in cards]
         return [card for _, card in sorted(zip(card_ranks, cards), reverse=True)]
 
     def get_card(self, index):
         return self.sorted_cards[index]
-
-    def get_card_rank(self, index):
-        return self.sorted_cards[index].rank
-
-    def get_card_suit(self, index):
-        return self.sorted_cards[index].suit
 
     def get_hand_value(self):
         hand_value = (
@@ -42,34 +42,11 @@ class Hand:
         return HandValue(HandType.HIGH_CARD, heights)
 
     def get_one_pair(self):
-        if self.get_card_rank(0) == self.get_card_rank(1):
-            heights = [self.get_card_rank(0)]
-            kickers = [
-                self.get_card_rank(2),
-                self.get_card_rank(3),
-                self.get_card_rank(4),
-            ]
-        elif self.get_card_rank(1) == self.get_card_rank(2):
-            heights = [self.get_card_rank(1)]
-            kickers = [
-                self.get_card_rank(0),
-                self.get_card_rank(3),
-                self.get_card_rank(4),
-            ]
-        elif self.get_card_rank(2) == self.get_card_rank(3):
-            heights = [self.get_card_rank(2)]
-            kickers = [
-                self.get_card_rank(0),
-                self.get_card_rank(1),
-                self.get_card_rank(4),
-            ]
-        elif self.get_card_rank(3) == self.get_card_rank(4):
-            heights = [self.get_card_rank(3)]
-            kickers = [
-                self.get_card_rank(0),
-                self.get_card_rank(1),
-                self.get_card_rank(2),
-            ]
+        for i in range(len(self.sorted_cards) - 1):
+            if self.sorted_ranks[i] == self.sorted_ranks[i + 1]:
+                heights = [self.sorted_ranks[i]]
+                kickers = self.sorted_cards[:i] + self.sorted_cards[(i + 2) :]
+                break
         else:
             kickers = None
             heights = None
@@ -80,94 +57,103 @@ class Hand:
             return None
 
     def get_two_pairs(self):
-        heights = [self.get_card_rank(1), self.get_card_rank(3)]
-        if self.get_card_rank(0) == self.get_card_rank(1) and self.get_card_rank(
-            2
-        ) == self.get_card_rank(3):
-            kickers = [self.get_card_rank(4)]
-        elif self.get_card_rank(0) == self.get_card_rank(1) and self.get_card_rank(
-            3
-        ) == self.get_card_rank(4):
-            kickers = [self.get_card_rank(2)]
-        elif self.get_card_rank(1) == self.get_card_rank(2) and self.get_card_rank(
-            3
-        ) == self.get_card_rank(4):
-            kickers = [self.get_card_rank(0)]
-        else:
-            kickers = None
-
-        if kickers:
-            return HandValue(HandType.TWO_PAIRS, heights, kickers)
+        first_pair_index = None
+        second_pair_index = None
+        for i in range(len(self.sorted_cards) - 3):
+            if self.sorted_ranks[i] == self.sorted_ranks[i + 1]:
+                heights = [self.sorted_ranks[i]]
+                first_pair_index = i
+                break
         else:
             return None
+
+        for i in range(first_pair_index + 2, len(self.sorted_cards) - 1):
+            if self.sorted_ranks[i] == self.sorted_ranks[i + 1]:
+                heights += [self.sorted_ranks[i]]
+                second_pair_index = i
+                break
+        else:
+            return None
+
+        kickers = (
+            self.sorted_cards[:first_pair_index]
+            + self.sorted_cards[(first_pair_index + 2) : second_pair_index]
+            + self.sorted_cards[(second_pair_index + 2) :]
+        )
+        return HandValue(HandType.TWO_PAIRS, heights, kickers)
 
     def get_three_of_a_kind(self):
-        heights = [self.get_card_rank(2)]
-        if self.get_card_rank(0) == self.get_card_rank(1) == self.get_card_rank(2):
-            kickers = [self.get_card_rank(3), self.get_card_rank(4)]
-        elif self.get_card_rank(1) == self.get_card_rank(2) == self.get_card_rank(3):
-            kickers = [self.get_card_rank(0), self.get_card_rank(4)]
-        elif self.get_card_rank(2) == self.get_card_rank(3) == self.get_card_rank(4):
-            kickers = [self.get_card_rank(0), self.get_card_rank(1)]
-        else:
-            kickers = None
-
-        if kickers:
-            return HandValue(HandType.THREE_OF_A_KIND, heights, kickers)
+        for i in range(len(self.sorted_cards) - 2):
+            if (
+                self.sorted_ranks[i]
+                == self.sorted_ranks[i + 1]
+                == self.sorted_ranks[i + 2]
+            ):
+                heights = [self.sorted_ranks[i]]
+                kickers = self.sorted_ranks[:i] + self.sorted_ranks[(i + 2) :]
+                break
         else:
             return None
 
+        return HandValue(HandType.THREE_OF_A_KIND, heights, kickers)
+
     def get_straight(self):
-        if self.get_card_rank(1) == 5 and self.get_card_rank(0) == 14:
-            heights = [self.get_card_rank(1)]
-        else:
-            heights = [self.get_card_rank(0)]
+        unique_ranks = list(set(self.sorted_ranks))
 
-        if heights[0] == 5:
-            valid_straight = (
-                heights[0]
-                == self.get_card_rank(1)
-                == self.get_card_rank(2) + 1
-                == self.get_card_rank(3) + 2
-                == self.get_card_rank(4) + 3
-            )
-        else:
-            valid_straight = (
-                self.get_card_rank(0)
-                == self.get_card_rank(1) + 1
-                == self.get_card_rank(2) + 2
-                == self.get_card_rank(3) + 3
-                == self.get_card_rank(4) + 4
-            )
-
-        if valid_straight:
+        if len(unique_ranks) >= 5:
+            for i in range(len(unique_ranks) - 4):
+                if unique_ranks[i : i + 4] == [2, 3, 4, 5] and unique_ranks[-1] == 14:
+                    # Ace 2 3 4 5
+                    heights = [5]
+                    break
+                elif (
+                    unique_ranks[i + 4]
+                    == unique_ranks[i + 3] + 1
+                    == unique_ranks[i + 2] + 2
+                    == unique_ranks[i + 1] + 3
+                    == unique_ranks[i] + 4
+                ):
+                    heights = [unique_ranks[i + 4]]
+                    break
+            else:
+                return None
             return HandValue(HandType.STRAIGHT, heights)
         else:
             return None
 
     def get_flush(self):
-        heights = [card.rank for card in self.sorted_cards]
-        valid_flush = (
-            self.get_card_suit(0)
-            == self.get_card_suit(1)
-            == self.get_card_suit(2)
-            == self.get_card_suit(3)
-            == self.get_card_suit(4)
-        )
+        suits = {
+            suit: len(list(filter(lambda s: s == suit, self.sorted_suits)))
+            for suit in SUITS
+        }
+        flush_suit = list(filter(lambda suit: suit[1] >= 5, suits.items()))
+        if len(flush_suit) == 1:
+            heights = list(
+                map(
+                    lambda card: card.rank,
+                    filter(
+                        lambda card: card.suit == flush_suit[0][0], self.sorted_cards
+                    ),
+                )
+            )
+        else:
+            return None
 
-        return HandValue(HandType.FLUSH, heights) if valid_flush else None
+        return HandValue(HandType.FLUSH, heights)
 
     def get_full_house(self):
-        if self.get_card_rank(0) == self.get_card_rank(1) == self.get_card_rank(
-            2
-        ) and self.get_card_rank(3) == self.get_card_rank(4):
-            heights = [self.get_card_rank(0)]
-            kickers = [self.get_card_rank(3)]
-        elif self.get_card_rank(0) == self.get_card_rank(1) and self.get_card_rank(
-            2
-        ) == self.get_card_rank(3) == self.get_card_rank(4):
-            heights = [self.get_card_rank(2)]
-            kickers = [self.get_card_rank(0)]
+        if (
+            self.sorted_ranks[0] == self.sorted_ranks[1] == self.sorted_ranks[2]
+            and self.sorted_ranks[3] == self.sorted_ranks[4]
+        ):
+            heights = [self.sorted_ranks[0]]
+            kickers = [self.sorted_ranks[3]]
+        elif (
+            self.sorted_ranks[0] == self.sorted_ranks[1]
+            and self.sorted_ranks[2] == self.sorted_ranks[3] == self.sorted_ranks[4]
+        ):
+            heights = [self.sorted_ranks[2]]
+            kickers = [self.sorted_ranks[0]]
         else:
             heights = kickers = None
 
@@ -175,25 +161,25 @@ class Hand:
 
     def get_four_of_a_kind(self):
         if (
-            self.get_card_rank(0)
-            == self.get_card_rank(1)
-            == self.get_card_rank(2)
-            == self.get_card_rank(3)
+            self.sorted_ranks[0]
+            == self.sorted_ranks[1]
+            == self.sorted_ranks[2]
+            == self.sorted_ranks[3]
         ):
-            heights = [self.get_card_rank(0)]
-            kickers = [self.get_card_rank(4)]
+            heights = [self.sorted_ranks[0]]
+            kickers = [self.sorted_ranks[4]]
         elif (
-            self.get_card_rank(1)
-            == self.get_card_rank(2)
-            == self.get_card_rank(3)
-            == self.get_card_rank(4)
+            self.sorted_ranks[1]
+            == self.sorted_ranks[2]
+            == self.sorted_ranks[3]
+            == self.sorted_ranks[4]
         ):
-            heights = [self.get_card_rank(1)]
-            kickers = [self.get_card_rank(0)]
+            heights = [self.sorted_ranks[1]]
+            kickers = [self.sorted_ranks[0]]
         else:
-            heights = kickers = None
+            return None
 
-        return HandValue(HandType.FOUR_OF_A_KIND, heights, kickers) if heights else None
+        return HandValue(HandType.FOUR_OF_A_KIND, heights, kickers)
 
     def get_straight_flush(self):
         if not self.get_flush():
@@ -210,5 +196,16 @@ class Hand:
     def __lt__(self, other):
         return self.get_hand_value() < other.get_hand_value()
 
+    def __eq__(self, other):
+        return self.get_hand_value() == other.get_hand_value()
+
     def __repr__(self):
         return str(self.sorted_cards)
+
+    def compressed_representation(self):
+        heights = self.sorted_cards[0].rank_char + self.sorted_cards[1].rank_char
+        suited = self.sorted_cards[0].suit == self.sorted_cards[1].suit
+        if suited:
+            return heights + "s"
+        else:
+            return heights + "o"

@@ -29,5 +29,20 @@ class HandValue:
         else:
             return False
 
+    def __eq__(self, other):
+        if self.hand_type.value != other.hand_type.value:
+            return False
+
+        if self.heights != other.heights:
+            return False
+
+        if self.kickers != other.kickers:
+            return False
+
+        return True
+
     def __repr__(self):
-        return f'Type: {self.hand_type}, Heights: {self.heights}, Kickers: {self.kickers}'
+        return (
+            f"Type: {self.hand_type}, Heights: {self.heights}, Kickers: {self.kickers}"
+        )
+
