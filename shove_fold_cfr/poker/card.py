@@ -7,17 +7,11 @@ class Card:
         self.rank = CHAR_TO_RANK[card[0]]
         self.suit = card[1]
 
-    def get_rank(self):
-        return self.rank
-
-    def get_suit(self):
-        return self.suit
-
     def __lt__(self, other):
-        return self.get_rank() < other.get_rank()
+        return self.rank < other.rank
 
     def __gt__(self, other):
-        return self.get_rank() > other.get_rank()
+        return self.rank > other.rank
 
     def __repr__(self):
-        return RANK_TO_CHAR[self.get_rank()] + self.get_suit()
+        return RANK_TO_CHAR[self.rank] + self.suit

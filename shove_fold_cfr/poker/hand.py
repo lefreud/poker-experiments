@@ -11,17 +11,17 @@ class Hand:
         cards = [Card(card_string) for card_string in hand.split()]
         card_ranks = []
         for card in cards:
-            card_ranks += [card.get_rank()]
+            card_ranks += [card.rank]
         return [card for _, card in sorted(zip(card_ranks, cards), reverse=True)]
 
     def get_card(self, index):
         return self.sorted_cards[index]
 
     def get_card_rank(self, index):
-        return self.sorted_cards[index].get_rank()
+        return self.sorted_cards[index].rank
 
     def get_card_suit(self, index):
-        return self.sorted_cards[index].get_suit()
+        return self.sorted_cards[index].suit
 
     def get_hand_value(self):
         hand_value = (
@@ -38,7 +38,7 @@ class Hand:
         return hand_value
 
     def get_high_card(self):
-        heights = [card.get_rank() for card in self.sorted_cards]
+        heights = [card.rank for card in self.sorted_cards]
         return HandValue(HandType.HIGH_CARD, heights)
 
     def get_one_pair(self):
@@ -146,7 +146,7 @@ class Hand:
             return None
 
     def get_flush(self):
-        heights = [card.get_rank() for card in self.sorted_cards]
+        heights = [card.rank for card in self.sorted_cards]
         valid_flush = (
             self.get_card_suit(0)
             == self.get_card_suit(1)
