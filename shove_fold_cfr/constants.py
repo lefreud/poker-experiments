@@ -1,5 +1,8 @@
-NUM_ACTIONS = 2
+NUM_ACTIONS = 3
 NUM_PLAYERS = 2
-ACTIONS = ['p', 'b']
+STACK_SIZE = 20
+BIG_BLIND = 2
+SMALL_BLIND = 1
+ACTIONS = ["f", "c", "b"]
 EMPTY_HISTORY = ""
 WIN_PROBABILITIES_FILENAME = "win_probabilities.json"
