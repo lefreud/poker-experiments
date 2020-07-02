@@ -15,5 +15,8 @@ class Card:
     def __gt__(self, other):
         return self.rank > other.rank
 
+    def __eq__(self, other):
+        return self.rank == other.rank and self.suit == other.suit
+
     def __repr__(self):
         return RANK_TO_CHAR[self.rank] + self.suit
