@@ -1,0 +1,5 @@
+NUM_ACTIONS = 2
+NUM_PLAYERS = 2
+ACTIONS = ['p', 'b']
+EMPTY_HISTORY = ""
+WIN_PROBABILITIES_FILENAME = "win_probabilities.json"
