@@ -106,6 +106,9 @@ class Trainer:
         if len(history) > 0 and history[-1] == "b":
             # Opponent went all-in, we can fold or call
             possible_actions = ["f", "c"]
+        elif min(stack_sizes) <= 2:
+            # All-in and call end up in the same situation
+            possible_actions = ["f", "c"]
         else:
             possible_actions = ["f", "c", "b"]
 
