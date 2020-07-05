@@ -1,4 +1,4 @@
-from poker.card import Card, SUITS
+from poker.card import Card, SUITS, RANK_TO_CHAR
 from poker.hand_value import HandValue
 from poker.hand_type import HandType
 
@@ -7,17 +7,17 @@ MAX_HAND_SIZE = 7
 
 class Hand:
     def __init__(self, hand):
-        if isinstance(hand, str):
+        if type(hand) == str:
             self.cards = [Card(card_string) for card_string in hand.split()]
         else:
             self.cards = hand
         self.sorted_cards = Hand.sort_cards(self.cards)
-        self.sorted_ranks = [card.rank for card in self.sorted_cards]
-        self.sorted_suits = [card.suit for card in self.sorted_cards]
+        self.sorted_ranks = [card // 4 for card in self.sorted_cards]
+        self.sorted_suits = [card % 4 for card in self.sorted_cards]
 
     @staticmethod
     def sort_cards(cards):
-        card_ranks = [card.rank for card in cards]
+        card_ranks = [card // 4 for card in cards]
         return [card for _, card in sorted(zip(card_ranks, cards), reverse=True)]
 
     def get_card(self, index):
@@ -203,8 +203,11 @@ class Hand:
         return str(self.sorted_cards)
 
     def compressed_representation(self):
-        heights = self.sorted_cards[0].rank_char + self.sorted_cards[1].rank_char
-        suited = self.sorted_cards[0].suit == self.sorted_cards[1].suit
+        heights = (
+            RANK_TO_CHAR[self.sorted_ranks[0] + 2]
+            + RANK_TO_CHAR[self.sorted_ranks[1] + 2]
+        )
+        suited = self.sorted_suits[0] % 4 == self.sorted_suits[1] % 4
         if suited:
             return heights + "s"
         else:

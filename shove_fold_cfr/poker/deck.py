@@ -1,5 +1,6 @@
 from poker.card import Card
 from random import shuffle
+import numpy as np
 
 
 class Deck:
@@ -7,16 +8,18 @@ class Deck:
         self.reset()
 
     def reset(self):
-        self.cards = [Card(rank + suit) for rank in "23456789TJQKA" for suit in "HDCS"]
+        self.card_index = 0
+        self.cards = np.arange(52)
 
     def shuffle(self):
-        shuffle(self.cards)
+        np.random.shuffle(self.cards)
 
     def pop(self):
-        return self.cards.pop()
+        self.card_index += 1
+        return self.cards[self.card_index - 1]
 
-    def remove_cards(self, cards):
-        self.cards = list(filter(lambda card: card not in cards, self.cards))
+    # def remove_cards(self, cards):
+    #    self.cards = list(filter(lambda card: card not in cards, self.cards))
 
-    def peek(self, num_cards):
-        return self.cards[-num_cards:]
+    # def peek(self, num_cards):
+    #    return self.cards[-num_cards:]
